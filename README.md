@@ -156,6 +156,70 @@ print(f"Total events: {result.total_events}")
 print(f"Species found: {result.unique_species}")
 ```
 
+## Quick Start (Minimal Version)
+
+For testing and development without installing heavy ML dependencies (TensorFlow, OpenCV), use the minimal version:
+
+### Installation (Minimal)
+```bash
+# Clone the repository
+git clone https://github.com/atsuki-ichikawa/bird-monitoring-pipeline.git
+cd bird-monitoring-pipeline
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# or
+venv\Scripts\activate  # Windows
+
+# Install minimal dependencies
+pip install -r requirements-minimal.txt
+```
+
+### Testing Commands
+```bash
+# Check system status (minimal version)
+python -m src.cli_minimal status
+
+# Process a test video (mock processing)
+python -m src.cli_minimal process test_video.mp4 --output results/
+
+# Start web interface (minimal version)
+python -m src.cli_minimal serve --port 8000
+
+# Run minimal tests
+pytest tests/test_minimal.py -v
+```
+
+### Web Interface (Minimal)
+```bash
+# Start minimal web server
+python -m src.web.app_minimal
+
+# Access at http://localhost:8000
+# - API documentation: http://localhost:8000/docs
+# - Health check: http://localhost:8000/health
+# - System status: http://localhost:8000/api/status
+```
+
+### What's Included in Minimal Version
+- ✅ **Data Models**: Complete Pydantic schemas with validation
+- ✅ **Configuration System**: Full configuration management
+- ✅ **Web API**: All REST endpoints with mock responses
+- ✅ **CLI Interface**: All commands with mock processing
+- ✅ **Testing Suite**: Comprehensive unit tests
+- ⚠️ **Mock Processing**: No actual ML inference (returns test data)
+
+### Upgrading to Full Version
+```bash
+# Install full dependencies including ML libraries
+pip install -r requirements.txt
+
+# Use full versions
+python -m src.cli process video.mp4     # Full CLI
+python -m src.web.app                   # Full web app
+```
+
 ## Model Setup
 
 ### BirdNET (Audio Detection)
