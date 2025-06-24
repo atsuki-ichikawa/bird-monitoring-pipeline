@@ -252,10 +252,27 @@ async def get_result_timeline(result_id: str, resolution: Optional[int] = 100):
 
 if __name__ == "__main__":
     import uvicorn
+    import sys
+    import os
     
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=8000,
-        reload=True
-    )
+    # Add project root to Python path for proper module resolution
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+    
+    # Try with reload first, fallback to direct app reference
+    try:
+        uvicorn.run(
+            "src.web.app_minimal:app",
+            host="0.0.0.0",
+            port=8000,
+            reload=True
+        )
+    except Exception:
+        print("Reload mode failed, starting without reload...")
+        uvicorn.run(
+            app,
+            host="0.0.0.0",
+            port=8000,
+            reload=False
+        )

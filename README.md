@@ -193,8 +193,14 @@ pytest tests/test_minimal.py -v
 
 ### Web Interface (Minimal)
 ```bash
-# Start minimal web server
+# Method 1: Direct module execution
 python -m src.web.app_minimal
+
+# Method 2: Using uvicorn directly (alternative)
+uvicorn src.web.app_minimal:app --host 0.0.0.0 --port 8000 --reload
+
+# Method 3: Using CLI minimal serve command
+python -m src.cli_minimal serve --port 8000
 
 # Access at http://localhost:8000
 # - API documentation: http://localhost:8000/docs
