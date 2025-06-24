@@ -1,0 +1,51 @@
+# Bird Monitoring Pipeline Configuration
+
+# Environment settings
+environment: production
+project_root: /app
+
+# Directories
+models_dir: /app/models
+data_dir: /app/data
+logs_dir: /app/logs
+
+# Model paths (update these when models are available)
+birdnet_model_path: /app/models/birdnet/model.tflite
+yolo_model_path: /app/models/yolo/yolov10n.pt
+transfg_model_path: /app/models/transfg/model.pth
+
+# Audio processing settings
+audio_segment_length: 3.0
+audio_overlap: 0.5
+audio_sample_rate: 22050
+audio_confidence_threshold: 0.3
+
+# Video processing settings
+video_frame_skip: 1
+video_resize_height: null
+video_confidence_threshold: 0.5
+
+# Species classification
+species_confidence_threshold: 0.6
+
+# Temporal correlation
+temporal_correlation_window: 2.0
+
+# Confidence scoring
+audio_only_base_confidence: 0.3
+video_only_base_confidence: 0.4
+audio_video_base_confidence: 0.7
+
+# Web application
+web_host: 0.0.0.0
+web_port: 8000
+web_reload: false
+
+# Logging
+log_level: INFO
+log_format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Performance
+max_workers: 4
+batch_size: 32
+gpu_enabled: false

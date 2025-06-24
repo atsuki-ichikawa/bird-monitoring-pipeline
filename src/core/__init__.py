@@ -1,0 +1,1 @@
+"""Core pipeline components for bird detection and classification."""

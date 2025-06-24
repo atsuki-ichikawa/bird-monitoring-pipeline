@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bird Monitoring Pipeline</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/static/css/main.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-camera-video"></i>
+                Bird Monitoring Pipeline
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="#upload">Upload</a>
+                <a class="nav-link" href="#results">Results</a>
+                <a class="nav-link" href="#status">Status</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- System Status -->
+        <section id="status" class="mb-5">
+            <h2>System Status</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Component Status</h5>
+                        </div>
+                        <div class="card-body" id="component-status">
+                            <div class="text-center">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Processing Queue</h5>
+                        </div>
+                        <div class="card-body" id="queue-status">
+                            <div class="text-center">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Video Upload -->
+        <section id="upload" class="mb-5">
+            <h2>Upload Video</h2>
+            <div class="card">
+                <div class="card-body">
+                    <form id="upload-form" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="video-file" class="form-label">Video File</label>
+                                    <input type="file" class="form-control" id="video-file" accept="video/*" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="audio-threshold" class="form-label">Audio Threshold</label>
+                                    <input type="number" class="form-control" id="audio-threshold" 
+                                           min="0" max="1" step="0.1" value="0.3">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="video-threshold" class="form-label">Video Threshold</label>
+                                    <input type="number" class="form-control" id="video-threshold" 
+                                           min="0" max="1" step="0.1" value="0.5">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="species-threshold" class="form-label">Species Threshold</label>
+                                    <input type="number" class="form-control" id="species-threshold" 
+                                           min="0" max="1" step="0.1" value="0.6">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-cloud-upload"></i>
+                            Upload and Process
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Processing Jobs -->
+        <section id="jobs" class="mb-5">
+            <h2>Processing Jobs</h2>
+            <div class="card">
+                <div class="card-body">
+                    <div id="jobs-list">
+                        <div class="text-center text-muted">
+                            No jobs found. Upload a video to get started.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Viewer -->
+        <section id="results" class="mb-5" style="display: none;">
+            <h2>Detection Results</h2>
+            
+            <!-- Results Summary -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary" id="total-events">0</h5>
+                            <p class="card-text">Total Events</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-success" id="audio-video-events">0</h5>
+                            <p class="card-text">Audio + Video</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-info" id="species-identified">0</h5>
+                            <p class="card-text">Species Identified</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-warning" id="unique-species">0</h5>
+                            <p class="card-text">Unique Species</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Video Player and Timeline -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Video Player and Timeline</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <video id="video-player" class="w-100" controls style="max-height: 400px;">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Detection Info</h6>
+                            <div id="detection-info" class="border p-3 bg-light">
+                                <p class="text-muted">Select a detection event to view details</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <canvas id="timeline-canvas" width="800" height="100" class="w-100 border"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters and Controls -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6>Filters</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="species-filter" class="form-label">Species</label>
+                                    <select class="form-select" id="species-filter">
+                                        <option value="">All Species</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="confidence-filter" class="form-label">Min Confidence</label>
+                                    <input type="range" class="form-range" id="confidence-filter" 
+                                           min="0" max="1" step="0.1" value="0">
+                                    <span id="confidence-value">0.0</span>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-md-6">
+                                    <label for="type-filter" class="form-label">Detection Type</label>
+                                    <select class="form-select" id="type-filter">
+                                        <option value="">All Types</option>
+                                        <option value="audio_only">Audio Only</option>
+                                        <option value="video_only">Video Only</option>
+                                        <option value="audio_video">Audio + Video</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 d-flex align-items-end">
+                                    <button class="btn btn-outline-primary" id="apply-filters">
+                                        Apply Filters
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6>Export</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-success" id="export-json">
+                                    <i class="bi bi-download"></i>
+                                    Export JSON
+                                </button>
+                                <button class="btn btn-outline-info" id="export-csv">
+                                    <i class="bi bi-table"></i>
+                                    Export CSV
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Events Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h6>Detection Events</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="events-table">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Type</th>
+                                    <th>Confidence</th>
+                                    <th>Species</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="events-tbody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Toast notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="notification-toast" class="toast" role="alert">
+            <div class="toast-header">
+                <strong class="me-auto">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="notification-message">
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

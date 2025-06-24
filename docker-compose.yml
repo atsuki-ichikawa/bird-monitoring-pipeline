@@ -1,0 +1,161 @@
+version: '3.8'
+
+services:
+  # Main bird monitoring application
+  bird-monitor:
+    build: .
+    container_name: bird-monitor-app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./models:/app/models
+      - ./config.yaml:/app/config.yaml:ro
+    environment:
+      - BIRD_MONITOR_ENVIRONMENT=production
+      - BIRD_MONITOR_LOG_LEVEL=INFO
+      - BIRD_MONITOR_GPU_ENABLED=false
+      - BIRD_MONITOR_WEB_HOST=0.0.0.0
+      - BIRD_MONITOR_WEB_PORT=8000
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - bird-monitor-network
+
+  # Redis for caching and job queue
+  redis:
+    image: redis:7-alpine
+    container_name: bird-monitor-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    networks:
+      - bird-monitor-network
+
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: bird-monitor-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./docker/ssl:/etc/ssl/certs:ro
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - bird-monitor
+    restart: unless-stopped
+    networks:
+      - bird-monitor-network
+
+  # PostgreSQL database (optional for production)
+  postgres:
+    image: postgres:15-alpine
+    container_name: bird-monitor-db
+    environment:
+      POSTGRES_DB: birdmonitor
+      POSTGRES_USER: birdmonitor
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - bird-monitor-network
+
+  # Celery worker for background processing
+  celery-worker:
+    build: .
+    container_name: bird-monitor-worker
+    command: celery -A src.tasks.celery_app worker --loglevel=info
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./models:/app/models
+      - ./config.yaml:/app/config.yaml:ro
+    environment:
+      - BIRD_MONITOR_ENVIRONMENT=production
+      - BIRD_MONITOR_LOG_LEVEL=INFO
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - bird-monitor-network
+    deploy:
+      replicas: 2
+
+  # Celery beat scheduler
+  celery-beat:
+    build: .
+    container_name: bird-monitor-scheduler
+    command: celery -A src.tasks.celery_app beat --loglevel=info
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./config.yaml:/app/config.yaml:ro
+    environment:
+      - BIRD_MONITOR_ENVIRONMENT=production
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - bird-monitor-network
+
+  # Monitoring with Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: bird-monitor-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - bird-monitor-network
+
+  # Grafana for dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: bird-monitor-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./docker/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - bird-monitor-network
+
+networks:
+  bird-monitor-network:
+    driver: bridge
+
+volumes:
+  redis_data:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
