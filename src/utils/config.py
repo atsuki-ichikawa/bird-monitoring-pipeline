@@ -7,7 +7,8 @@ import os
 import yaml
 from pathlib import Path
 from typing import Optional, Dict, Any, Union
-from pydantic import BaseSettings, Field, validator
+from pydantic import Field, validator
+from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 
 from ..models.data_models import ProcessingConfig
