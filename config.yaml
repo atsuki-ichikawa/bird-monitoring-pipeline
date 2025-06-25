@@ -1,18 +1,19 @@
 # Bird Monitoring Pipeline Configuration
+# macOS Local Development Settings
 
 # Environment settings
-environment: production
-project_root: /app
+environment: development
+project_root: .
 
 # Directories
-models_dir: /app/models
-data_dir: /app/data
-logs_dir: /app/logs
+models_dir: models
+data_dir: data
+logs_dir: logs
 
 # Model paths (update these when models are available)
-birdnet_model_path: /app/models/birdnet/model.tflite
-yolo_model_path: /app/models/yolo/yolov10n.pt
-transfg_model_path: /app/models/transfg/model.pth
+birdnet_model_path: null
+yolo_model_path: null
+transfg_model_path: null
 
 # Audio processing settings
 audio_segment_length: 3.0
@@ -37,9 +38,9 @@ video_only_base_confidence: 0.4
 audio_video_base_confidence: 0.7
 
 # Web application
-web_host: 0.0.0.0
+web_host: localhost
 web_port: 8000
-web_reload: false
+web_reload: true
 
 # Logging
 log_level: INFO
@@ -47,5 +48,5 @@ log_format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
 # Performance
 max_workers: 4
-batch_size: 32
-gpu_enabled: false
+batch_size: 16
+gpu_enabled: true
