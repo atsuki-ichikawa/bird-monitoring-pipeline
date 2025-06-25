@@ -160,6 +160,55 @@ print(f"Species found: {result.unique_species}")
 
 For testing and development without installing heavy ML dependencies (TensorFlow, OpenCV), use the minimal version:
 
+### macOS Setup (Apple Silicon & Intel)
+
+**⚠️ Python 3.13 Compatibility Issue**  
+TensorFlow doesn't fully support Python 3.13 yet. For best compatibility, use Python 3.11 or 3.12.
+
+#### Quick Start (Recommended)
+```bash
+# Clone the repository
+git clone https://github.com/atsuki-ichikawa/bird-monitoring-pipeline.git
+cd bird-monitoring-pipeline
+
+# Install minimal dependencies (works with Python 3.13)
+pip install -r requirements-minimal.txt
+pip install pydantic-settings
+
+# Test with minimal version
+python -m src.web.app_minimal
+# Access: http://localhost:8000
+```
+
+#### Full Setup with ML Dependencies
+```bash
+# For Apple Silicon Macs
+pip install tensorflow-macos==2.13.0
+pip install tensorflow-metal==1.0.1
+pip install opencv-python==4.8.1.78
+
+# For Intel Macs
+pip install tensorflow==2.13.0
+pip install opencv-python==4.8.1.78
+
+# Common dependencies
+pip install torch torchvision torchaudio
+pip install ultralytics librosa scikit-learn
+```
+
+#### Automated Setup
+```bash
+# Run automated macOS setup
+python setup_macos.py
+
+# This will:
+# - Check system requirements
+# - Install Homebrew dependencies (ffmpeg, etc.)
+# - Create virtual environment
+# - Install appropriate ML dependencies for your Mac
+# - Create launch scripts
+```
+
 ### Installation (Minimal)
 ```bash
 # Clone the repository
